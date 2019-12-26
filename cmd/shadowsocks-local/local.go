@@ -73,6 +73,7 @@ func handShake(conn net.Conn) (err error) {
 		return errAuthExtraData
 	}
 	// send confirmation: version 5, no authentication required
+	// client 先向 ss-local 发送一个 握手包， ss-local 回复协议版本号完成握手请求。
 	_, err = conn.Write([]byte{socksVer5, 0})
 	return
 }
@@ -292,6 +293,7 @@ func handleConnection(conn net.Conn) {
 	}()
 
 	var err error = nil
+	// ss local与客户端握手，完成后进行下一步
 	if err = handShake(conn); err != nil {
 		log.Println("socks handshake:", err)
 		return
@@ -304,7 +306,7 @@ func handleConnection(conn net.Conn) {
 	// Sending connection established message immediately to client.
 	// This some round trip time for creating socks connection with the client.
 	// But if connection failed, the client will get connection reset error.
-	// client 先向 ss-local 发送一个 握手包， ss-local 回复协议版本号完成握手请求。
+
 	_, err = conn.Write([]byte{0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x08, 0x43})
 	if err != nil {
 		debug.Println("send connection confirmation:", err)
@@ -325,12 +327,18 @@ func handleConnection(conn net.Conn) {
 		}
 	}()
 
+	// 说明：conn是客户端，remote是ss server, 本代码ss client负责处理二者工作
+
+	// 5. 把收到的 client 的数据全部加密后转发给 ss-server
 	go ss.PipeThenClose(conn, remote, nil)
+	// 6. 把收到的 ss-server 的数据解密后转发给 client
 	ss.PipeThenClose(remote, conn, nil)
 	closed = true
 	debug.Println("closed connection to", addr)
 }
 
+
+// ss client监听的主循环
 func run(listenAddr string) {
 	ln, err := net.Listen("tcp", listenAddr)
 	if err != nil {
