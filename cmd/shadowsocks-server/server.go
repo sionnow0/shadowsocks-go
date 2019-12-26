@@ -22,6 +22,11 @@ import (
 	ss "github.com/shadowsocks/shadowsocks-go/shadowsocks"
 )
 
+/*
+ss-server 和 ss-local 的逻辑差不多， 在建立连接的阶段没有 handshake 协议，
+收到 client 经由 ss-local 发送来的目标地址和端口，和目标地址建立连接，
+将收到的数据经由 ss-local 发送到 client。
+ */
 const (
 	idType  = 0 // address type index
 	idIP0   = 1 // ip address start index

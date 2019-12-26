@@ -78,6 +78,8 @@ func Dial(addr, server string, cipher *Cipher) (c *Conn, err error) {
 	return DialWithRawAddr(ra, server, cipher)
 }
 
+
+// 重写的Read
 func (c *Conn) Read(b []byte) (n int, err error) {
 	if c.dec == nil {
 		iv := make([]byte, c.info.ivLen)
@@ -89,6 +91,7 @@ func (c *Conn) Read(b []byte) (n int, err error) {
 		}
 	}
 
+	// 密码
 	cipherData := c.readBuf
 	if len(b) > len(cipherData) {
 		cipherData = make([]byte, len(b))
@@ -103,6 +106,7 @@ func (c *Conn) Read(b []byte) (n int, err error) {
 	return
 }
 
+// 重写的Write
 func (c *Conn) Write(b []byte) (n int, err error) {
 	var iv []byte
 	if c.enc == nil {
