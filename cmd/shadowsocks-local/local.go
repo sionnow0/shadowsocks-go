@@ -304,12 +304,14 @@ func handleConnection(conn net.Conn) {
 	// Sending connection established message immediately to client.
 	// This some round trip time for creating socks connection with the client.
 	// But if connection failed, the client will get connection reset error.
+	// client 先向 ss-local 发送一个 握手包， ss-local 回复协议版本号完成握手请求。
 	_, err = conn.Write([]byte{0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x08, 0x43})
 	if err != nil {
 		debug.Println("send connection confirmation:", err)
 		return
 	}
 
+	// 与服务器建立连接
 	remote, err := createServerConn(rawaddr, addr)
 	if err != nil {
 		if len(servers.srvCipher) > 1 {
