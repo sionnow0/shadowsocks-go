@@ -236,6 +236,8 @@ func parseServerConfig(config *ss.Config) {
 	return
 }
 
+
+// remote 是 ss.Conn, 重写了read write方法的, 重写后带加密
 func connectToServer(serverId int, rawaddr []byte, addr string) (remote *ss.Conn, err error) {
 	se := servers.srvCipher[serverId]
 	remote, err = ss.DialWithRawAddr(rawaddr, se.server, se.cipher.Copy())
@@ -328,6 +330,8 @@ func handleConnection(conn net.Conn) {
 	}()
 
 	// 说明：conn是客户端，remote是ss server, 本代码ss client负责处理二者工作
+
+	// 注意：这里只有remote的read write是重写的。conn是用原生的！！！
 
 	// 5. 把收到的 client 的数据全部加密后转发给 ss-server
 	go ss.PipeThenClose(conn, remote, nil)
